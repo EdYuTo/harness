@@ -1,0 +1,4 @@
+[submodule "vendor/cursor-plugins"]
+	path = vendor/cursor-plugins
+	url = https://github.com/cursor/plugins
+	shallow = true

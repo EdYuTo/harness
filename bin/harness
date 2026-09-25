@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# harness — role-based wrapper around `paseo run`.
+#
+#   harness <role> [paseo-run-flags...] "<prompt>"
+#   harness plan "add rate limiting to the API"
+#   harness exec --new-workspace worktree --worktree-mode branch-off \
+#                --new-branch task-1 --base main "implement task 1 of plans/rate-limit.md"
+#   harness roles            # list configured roles
+#
+# Roles resolve through harness.json next to this repo's root. Any extra flags
+# are passed straight to `paseo run`, so workspace/worktree/wait flags all work.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG="$ROOT/harness.json"
+
+usage() {
+  echo "usage: harness <role|roles> [paseo-run-flags...] \"<prompt>\"" >&2
+  echo "roles: $(jq -r '.roles | keys | join(", ")' "$CONFIG")" >&2
+  exit 1
+}
+
+[ $# -ge 1 ] || usage
+ROLE="$1"; shift
+
+if [ "$ROLE" = "roles" ]; then
+  jq -r '.roles | to_entries[] | "\(.key)\t\(.value.provider)/\(.value.model)\tthinking=\(.value.thinking)\tmode=\(.value.mode)\n\t\(.value.notes)"' "$CONFIG"
+  exit 0
+fi
+
+SPEC="$(jq -e --arg r "$ROLE" '.roles[$r]' "$CONFIG")" || { echo "unknown role: $ROLE" >&2; usage; }
+
+PROVIDER="$(jq -r '.provider' <<<"$SPEC")"
+MODEL="$(jq -r '.model' <<<"$SPEC")"
+THINKING="$(jq -r '.thinking // empty' <<<"$SPEC")"
+MODE="$(jq -r '.mode // empty' <<<"$SPEC")"
+
+ARGS=(run --provider "$PROVIDER/$MODEL" --title "harness:$ROLE")
+[ -n "$THINKING" ] && ARGS+=(--thinking "$THINKING")
+[ -n "$MODE" ] && ARGS+=(--mode "$MODE")
+
+exec paseo "${ARGS[@]}" "$@"

@@ -1,0 +1,30 @@
+---
+description: pstack per-role model choices (overrides skill defaults)
+alwaysApply: true
+---
+# pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`).
+# TEMPLATE: slugs below express intent from harness.json but are NOT verified against
+# this Cursor install's Task-tool slugs. Run /setup-pstack inside Cursor once to
+# detect real slugs and rewrite this file; keep the intent mapping:
+#   explorers/investigators/workers -> exec-tier (Luna-class, fast+cheap)
+#   explainers/synthesizers/judgment -> Opus 5
+#   hardest tasks -> Fable 5.1
+# budget: medium (high)
+feature, refactoring: auto
+bug-fix: auto
+perf-issue: auto
+hillclimb: auto
+judgment and prose: inherit-parent
+hardest tasks: inherit-parent
+how explorer: auto
+how explainer: inherit-parent
+why investigators: auto
+why synthesizer: inherit-parent
+reflect tooling: auto
+reflect judgment, divergent, synthesizer: inherit-parent
+arena runners: inherit-parent, auto, auto
+arena cross-judge pool: inherit-parent, auto
+swarm workers: auto
+architect runners: inherit-parent, auto, auto
+interrogate reviewers: inherit-parent, auto, auto

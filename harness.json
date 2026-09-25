@@ -1,0 +1,47 @@
+{
+  "$comment": "Role -> agent mapping for the heterogeneous harness. bin/harness reads this and shells out to `paseo run`. Edit values here; every harness (Claude Code, Codex, Cursor, Paseo agents) resolves roles through this file. Valid providers/models: `paseo ls`-able via mcp list_providers/list_models. thinking = provider thinking option id.",
+  "roles": {
+    "plan": {
+      "provider": "claude",
+      "model": "claude-fable-5-1",
+      "thinking": "xhigh",
+      "mode": "plan",
+      "notes": "Writes implementation plans. Read-only. Output goes to plans/<slug>.md."
+    },
+    "plan-alt": {
+      "provider": "codex",
+      "model": "gpt-6-astra",
+      "thinking": "xhigh",
+      "mode": "auto",
+      "notes": "Alternate planner. Use for a second opinion or when Anthropic quota is exhausted."
+    },
+    "orchestrate": {
+      "provider": "claude",
+      "model": "claude-opus-5",
+      "thinking": "high",
+      "mode": "acceptEdits",
+      "notes": "Drives the loop in ORCHESTRATION.md: splits the plan, spawns executors, reviews their diffs, iterates. Alternates: claude/claude-opus-4-8[1m] (huge-context reviews), cursor/claude-opus-5."
+    },
+    "exec": {
+      "provider": "codex",
+      "model": "gpt-5.6-luna",
+      "thinking": "medium",
+      "mode": "auto",
+      "notes": "Implements one plan task in an isolated worktree. Cheap and fast; the reviewer catches its mistakes."
+    },
+    "review": {
+      "provider": "claude",
+      "model": "claude-opus-5",
+      "thinking": "high",
+      "mode": "plan",
+      "notes": "Read-only diff review against the plan task. Same brain as the orchestrator so verdicts are consistent."
+    },
+    "investigate": {
+      "provider": "claude",
+      "model": "claude-sonnet-5",
+      "thinking": "high",
+      "mode": "plan",
+      "notes": "Codebase Q&A: pstack how/why/recall/blast-radius style work. Default unconfirmed by owner - swap for codex/gpt-5.6-terra (medium) if Sonnet answers feel thin."
+    }
+  }
+}
