@@ -23,6 +23,58 @@ The submodule is marked `shallow`, so init only fetches the tip commit. Without
 it, `skills/` and the `.claude/.codex/.cursor` skill links dangle — if skills
 seem missing, run the `submodule update` line above.
 
+## Setup
+
+### 1. Wrapper on PATH
+
+```sh
+# shell profile
+export PATH="$HOME/Desktop/Projects/harness/bin:$PATH"
+```
+
+Requires `jq` and the [Paseo](https://paseo.sh) daemon running (`paseo status`).
+
+### 2. pstack skills, globally (all repos, all agents)
+
+Installs the skill library machine-wide so Claude Code, Codex, and Cursor see
+it in every repo and every Paseo workspace — this repo's submodule symlinks
+then only matter for pinning:
+
+```sh
+cd ~   # avoid project-level install
+S=(); for s in $(ls <path-to-harness>/vendor/cursor-plugins/pstack/skills); do S+=(-s "$s"); done
+npx -y skills add cursor/plugins -g -a claude-code -a codex -a cursor -y "${S[@]}"
+# two skills only match by display name:
+npx -y skills add cursor/plugins -g -a claude-code -a codex -a cursor -y -s 'Poteto Mode' -s 'Make Bot UI'
+```
+
+Gotchas (learned the hard way):
+
+- `-s`/`-a` do **not** take comma lists — repeat the flag per value.
+- Agent name is `claude-code`, not `claude`.
+- Skills land canonically in `~/.agents/skills/`. Codex (≥0.154) and Cursor
+  read that path natively; Claude Code gets per-skill symlinks in
+  `~/.claude/skills/`. Empty `~/.codex/skills` afterwards is normal.
+- Update later with `npx skills update -g`. The global install and this repo's
+  submodule pin are independent — bump both when refreshing pstack.
+
+### 3. Paseo agent profiles (optional, for the UI picker and delegating agents)
+
+Paseo → **Settings → your host → Agents → Agent profiles → New profile**.
+Profiles are read-only to agents (`list_profiles`) and per-host — recreate on
+each daemon. Mirror `harness.json`, one profile per role
+(`harness:plan` = Claude / Fable 5.1 / Plan Mode / xhigh, `harness:exec` =
+Codex / GPT-5.6-Luna / Default / medium, …), and paste each role's `notes`
+into the profile's "When to use" field — orchestrating agents pick delegation
+targets by reading those notes. Avoid Bypass mode unless you want fully
+unattended runs.
+
+### 4. Cursor-native pstack roles (optional)
+
+Inside Cursor, run `/setup-pstack` once. It detects that install's real model
+slugs and rewrites `.cursor/rules/pstack-models.mdc` (committed here only as a
+safe template).
+
 ## Layout
 
 ```
@@ -59,27 +111,16 @@ Extra flags pass through to `paseo run` (`--new-workspace worktree`,
 The harness is project-agnostic — agents run wherever you point them:
 
 ```sh
-# one-time, in your shell profile
-export PATH="$HOME/Desktop/Projects/harness/bin:$PATH"
-
-# then from any project directory
 cd ~/code/my-app
 harness plan "…"            # paseo run defaults --cwd to the current directory
 harness exec --cwd ~/code/other-app "…"   # or target explicitly
 ```
 
-To get the pstack skills inside another project's own agent sessions, symlink
-the library:
-
-```sh
-# per project (Claude Code / Codex / Cursor pick these up)
-ln -s ~/Desktop/Projects/harness/skills .claude/skills
-ln -s ~/Desktop/Projects/harness/skills .codex/skills
-ln -s ~/Desktop/Projects/harness/skills .cursor/skills
-
-# or once, user-level, for every Claude Code session
-ln -s ~/Desktop/Projects/harness/skills/how ~/.claude/skills/how   # per skill
-```
+Skills are already everywhere after Setup step 2 (global install). For a repo
+that should carry its own pinned copy instead — e.g. so teammates get it from
+a plain clone — either run a project-level install
+(`cd repo && npx skills add cursor/plugins -a claude-code -a codex -a cursor`)
+or replicate this repo's submodule + symlink pattern.
 
 For the orchestration loop in another repo, paste `ORCHESTRATION.md` into the
 orchestrator's kickoff prompt (see that file's "Kicking off a run").
