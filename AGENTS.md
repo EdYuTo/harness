@@ -28,7 +28,7 @@ so some reference Cursor internals. Map them as follows:
 
 | Skill says                          | Do instead (non-Cursor)                          |
 |-------------------------------------|--------------------------------------------------|
-| spawn a `Task` subagent with model X| resolve the nearest role in `harness.json`; spawn via your own subagent tool or `paseo run` |
+| spawn a `Task` subagent with model X| resolve the nearest role in `harness.json`; spawn via Paseo `create_agent` (MCP) or `paseo run`. Your built-in subagent tool runs your own model family only — never use it when the role calls for another provider |
 | `pstack-models.mdc` rule            | `harness.json` roles                             |
 | `AskQuestion`                       | your harness's ask-user tool, or proceed with the default and say so |
 | `cursor-team-kit` skills (`deslop`, `control-*`) | available at `vendor/cursor-plugins/cursor-team-kit/skills/`; else use `unslop` / `no-comments` |

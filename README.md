@@ -122,8 +122,12 @@ a plain clone — either run a project-level install
 (`cd repo && npx skills add cursor/plugins -a claude-code -a codex -a cursor`)
 or replicate this repo's submodule + symlink pattern.
 
-For the orchestration loop in another repo, paste `ORCHESTRATION.md` into the
-orchestrator's kickoff prompt (see that file's "Kicking off a run").
+For the orchestration loop in another repo, launch through the wrapper —
+`harness orchestrate` embeds `ORCHESTRATION.md` and the role matrix into the
+kickoff prompt automatically. Only when starting an orchestrator from the
+Paseo UI instead (e.g. via the Harness profile) must you paste
+`ORCHESTRATION.md` into the first message yourself; a bare prompt there gives
+the agent no roles, and it will do everything on its own model.
 
 ## Model matrix (current)
 

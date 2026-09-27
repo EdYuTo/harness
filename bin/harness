@@ -39,4 +39,19 @@ ARGS=(run --provider "$PROVIDER/$MODEL" --title "harness:$ROLE")
 [ -n "$THINKING" ] && ARGS+=(--thinking "$THINKING")
 [ -n "$MODE" ] && ARGS+=(--mode "$MODE")
 
+# Orchestrate kickoffs embed the loop and the role matrix so they work from
+# any repo — without this, an orchestrator outside this repo never learns the
+# roles and does everything on its own model.
+if [ "$ROLE" = "orchestrate" ] && [ $# -ge 1 ]; then
+  TASK="${*: -1}"
+  set -- "${@:1:$#-1}"
+  exec paseo "${ARGS[@]}" "$@" "$(cat "$ROOT/ORCHESTRATION.md")
+
+Role matrix (harness.json):
+$(cat "$CONFIG")
+
+--- TASK ---
+$TASK"
+fi
+
 exec paseo "${ARGS[@]}" "$@"

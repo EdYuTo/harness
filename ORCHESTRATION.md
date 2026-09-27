@@ -32,14 +32,22 @@ model in a prompt — name the role.
 bin/harness plan --cwd "$PWD" "write plans/<slug>.md for: <task>. \
 Number the tasks; each gets done-criteria and the files it touches."
 
-# 2. Orchestrate (runs long; background it)
-bin/harness orchestrate -d --cwd "$PWD" "$(cat ORCHESTRATION.md) \
---- Execute plans/<slug>.md following the loop above."
+# 2. Orchestrate (runs long; background it). The wrapper embeds this file and
+#    the role matrix into the prompt automatically — works from any repo.
+bin/harness orchestrate -d --cwd "$PWD" "Execute plans/<slug>.md."
 ```
 
 ## Rules for the orchestrator agent
 
 You are a Paseo agent: use your agent-scoped Paseo tools, not the CLI.
+
+- **Cross-model spawning goes through Paseo only.** Your built-in
+  subagent/Task tool always runs your own model — using it for exec/plan work
+  silently turns the whole loop into one model family. Spawn every role agent
+  with `create_agent` and the exact `provider/model` from the role matrix
+  below (it is embedded here so this file works in any repo, without
+  `harness.json` present). After spawning, confirm in your status update which
+  provider/model each child runs.
 
 - **Spawning executors**: `create_agent` with provider/model from the `exec`
   role in `harness.json`, in a fresh worktree workspace
